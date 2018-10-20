@@ -41,20 +41,20 @@ public:
 	// Sets default values for this pawn's properties
 	AHoverer();
 
+
 	virtual void Tick(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxForwardForce = 100000;
+	float maxForwardForce = 150000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float maxHoverForce = 300000;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float torqeuYawCoefficient   = 20000000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuRollCoefficient  = 10000000;
+	float torqeuRollCoefficient  = 13000000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float torqeuPitchCoefficient = 20000000;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxHoverImpulse = 300000;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	//float maxHoverForce = 120000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float torqueY;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -95,14 +95,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
 	FVector thrusterOffset;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	FVector lastPosFL;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	FVector lastPosFR;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	FVector lastPosBL;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	FVector lastPosBR;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
+	class GroundEffectThrusterComponent *groundEffectLF;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
+	class GroundEffectThrusterComponent *groundEffectRF;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
+	class GroundEffectThrusterComponent *groundEffectLB;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
+	class GroundEffectThrusterComponent *groundEffectRB;
 
 	//UFUNCTION()
 	//void DoDamage(float damageValue);
@@ -141,7 +141,7 @@ protected:
 	UFUNCTION()
 	void SetupVROptions();
 
-	
+	virtual void Destroyed() override;
 
 	//UFUNCTION(Reliable, Server, WithValidation)
 	//void ServerMoveX(float value);

@@ -2,30 +2,30 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+//#include "CoreMinimal.h"
 //#include "PhysicsEngine/PhysicsThrusterComponent.h"
-#include "GroundEffectThrusterComponent.generated.h"
+//#include "GroundEffectThrusterComponent.generated.h"
 
 /**
  * 
  */
-UCLASS()
-class CYBERPUNKING_API UGroundEffectThrusterComponent : public UObject/*UPhysicsThrusterComponent*/
+//UCLASS()
+class /*CYBERPUNKING_API U*/GroundEffectThrusterComponent// : public UObject/*UPhysicsThrusterComponent*/
 {
-	GENERATED_BODY()
+	//GENERATED_BODY()
 public:
-	UGroundEffectThrusterComponent();
+	GroundEffectThrusterComponent();
 
-	UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UPhysicsThrusterComponent *thruster;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector lastLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float maxForce=500000;
 
-	UFUNCTION()
+	//UFUNCTION()
 	void updateImpulse();
 
 };

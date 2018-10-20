@@ -32,6 +32,9 @@
 #include "XRMotionControllerBase.h"
 #include "MotionControllerComponent.h"
 
+//mine classes
+#include "GroundEffectThrusterComponent.h"
+
 
 AHoverer::AHoverer()
 {
@@ -54,10 +57,10 @@ AHoverer::AHoverer()
 	StaticMeshComponent->SetSimulatePhysics(true);
 	StaticMeshComponent->SetEnableGravity(true);
 	StaticMeshComponent->SetMassOverrideInKg(NAME_None, mass, true);
-	StaticMeshComponent->SetLinearDamping(.1);
+	StaticMeshComponent->SetLinearDamping(.25);
 	StaticMeshComponent->SetAngularDamping(2);
 	StaticMeshComponent->BodyInstance.InertiaTensorScale = FVector( .75, 3, 1);
-	StaticMeshComponent->SetCenterOfMass(FVector(0, 0, -200));
+	StaticMeshComponent->SetCenterOfMass(FVector(0, 0, -175));
 	StaticMeshComponent->SetMoveIgnoreMask(EComponentMobility::Movable);
 
 	float pitch = -70;
@@ -89,7 +92,7 @@ AHoverer::AHoverer()
 	// Attach the camera
 	//Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);	
 	Camera->SetupAttachment(offsetHMD);
-	Camera->SetRelativeLocation(FVector(-800, 0, .180));
+	Camera->SetRelativeLocation(FVector(0, 0, 0));
 	//Camera->bUsePawnControlRotation = false; // Don't rotate camera with controller
 
 	headMD = CreateDefaultSubobject<UHeadMountedDisplayFunctionLibrary>(TEXT("HMD"));
@@ -101,6 +104,7 @@ AHoverer::AHoverer()
 	RightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MCRight"));
 	RightMotionController->MotionSource = FName(TEXT("Right"));
 	RightMotionController->SetupAttachment(offsetHMD);
+
 	//RightHandComponent = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightHand"));
 	//RightHandComponent->Hand = EControllerHand::Right;
 	//RightHandComponent->AttachParent = VROriginComp;
@@ -117,34 +121,51 @@ AHoverer::AHoverer()
 	//MainThrusterComponent->bAutoActivate = 1;
 
 	thrusterOffset = FVector(150, 40, 0);
+	float angle = 5;
 
 	thrusterLF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLF"));
 	thrusterLF->SetRelativeLocation(thrusterOffset*FVector(1, -1, 1));
 	thrusterLF->SetupAttachment(RootComponent);
-	thrusterLF->SetWorldRotation(FRotator(-90, 0, 0));
+	thrusterLF->SetWorldRotation(FQuat(FVector(0, 1, 0), FMath::DegreesToRadians(90)) * FQuat(FVector(0, 0, 1), FMath::DegreesToRadians(-angle)));
 	thrusterLF->ThrustStrength = 0;
 	thrusterLF->bAutoActivate = 1;
+	groundEffectLF = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectLF"));
+	groundEffectLF->thruster=thrusterLF;
+	groundEffectLF->lastLocation = thrusterLF->GetComponentLocation();
+	groundEffectLF->maxForce = maxHoverForce;
 
 	thrusterRF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterRF"));
 	thrusterRF->SetRelativeLocation(thrusterOffset);
 	thrusterRF->SetupAttachment(RootComponent);
-	thrusterRF->SetWorldRotation(FRotator(-90, 0, 0));
+	thrusterRF->SetWorldRotation(FQuat(FVector(0, 1, 0), FMath::DegreesToRadians(90)) * FQuat(FVector(0, 0, 1), FMath::DegreesToRadians(angle)));
 	thrusterRF->ThrustStrength = 0;
 	thrusterRF->bAutoActivate = 1;
+	groundEffectRF = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectRF"));
+	groundEffectRF->thruster = thrusterRF;
+	groundEffectRF->lastLocation = thrusterRF->GetComponentLocation();
+	groundEffectRF->maxForce = maxHoverForce;
 
 	thrusterLB = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLB"));
-	thrusterLB->SetRelativeLocation(thrusterOffset*FVector(-1, -1, 1));
+	thrusterLB->SetRelativeLocation(thrusterOffset*FVector(-1,-1, 1));
 	thrusterLB->SetupAttachment(RootComponent);
-	thrusterLB->SetWorldRotation(FRotator(-90, 0, 0));
+	thrusterLB->SetWorldRotation(FQuat(FVector(0, 1, 0), FMath::DegreesToRadians(90)) * FQuat(FVector(0, 0, 1), FMath::DegreesToRadians(-angle)));
 	thrusterLB->ThrustStrength = 0;
 	thrusterLB->bAutoActivate = 1;
+	groundEffectLB = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectLB"));
+	groundEffectLB->thruster = thrusterLB;
+	groundEffectLB->lastLocation = thrusterLB->GetComponentLocation();
+	groundEffectLB->maxForce = maxHoverForce;
 
 	thrusterRB = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterRB"));
-	thrusterRB->SetRelativeLocation(thrusterOffset*FVector (-1,1, 1));
+	thrusterRB->SetRelativeLocation(thrusterOffset*FVector (-1, 1, 1));
 	thrusterRB->SetupAttachment(RootComponent);
-	thrusterRB->SetWorldRotation(FRotator(-90, 0, 0));
+	thrusterRB->SetWorldRotation(FQuat(FVector(0, 1, 0), FMath::DegreesToRadians(90)) * FQuat(FVector(0, 0, 1), FMath::DegreesToRadians(angle)));
 	thrusterRB->ThrustStrength = 0;
 	thrusterRB->bAutoActivate = 1;
+	groundEffectRB = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectRB"));	
+	groundEffectRB->thruster = thrusterRB;
+	groundEffectRB->lastLocation = thrusterRB->GetComponentLocation();
+	groundEffectRB->maxForce = maxHoverForce;
 
 	bReplicates = true;
 	bReplicateMovement = true;
@@ -153,6 +174,7 @@ AHoverer::AHoverer()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
+
 
 // Called when the game starts or when spawned
 void AHoverer::BeginPlay()
@@ -171,12 +193,10 @@ void AHoverer::Tick(float DeltaTime)
 	float offsetLR = 40;
 	float offsetH = 0;
 	
-	lastPosFL;
-	updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
-	updateHoverImpulses(+offsetFB, -offsetLR, offsetH);
-	updateHoverImpulses(-offsetFB, +offsetLR, offsetH);
-	updateHoverImpulses(-offsetFB, -offsetLR, offsetH);
-	
+	groundEffectLF->updateImpulse();
+	groundEffectRF->updateImpulse();
+	groundEffectLB->updateImpulse();
+	groundEffectRB->updateImpulse();
 
 	FRotator rotHMD;
 	FVector posHMD;
@@ -194,16 +214,26 @@ void AHoverer::Tick(float DeltaTime)
 	float lu = FVector::DotProduct(LeftMotionController->GetComponentLocation() - Camera->GetComponentLocation(), Camera->GetUpVector());
 	FVector lc = FVector(lf, lr, lu);
 
+	FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
+	//FVector verticalForceAdd = verticalSpeed * -25;
+	//StaticMeshComponent->AddForce(verticalForceAdd);
+
+	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity()*1 + GetActorLocation(), 120.f, FColor::Red, false, -1, 2, 5.f);
+	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity().ProjectOnTo(FVector(0,0,1)) * 2 + GetActorLocation(), 120.f, FColor::Blue, false, -1, 2, 5.f);
+
+	//updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
+	//updateHoverImpulses(+offsetFB, -offsetLR, offsetH);
+	//updateHoverImpulses(-offsetFB, +offsetLR, offsetH);
+	//updateHoverImpulses(-offsetFB, -offsetLR, offsetH);
 	//float linearDamping = 1.0 / 1;
 	//FVector localVerticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector());
 	//FVector verticalDumingSpeed = localVerticalSpeed * linearDamping * GetWorld()->GetDeltaSeconds();
 	//StaticMeshComponent->SetPhysicsLinearVelocity(GetVelocity() - verticalDumingSpeed);
-
+	//
 	//StaticMeshComponent->AddTorqueInRadians(GetActorRightVector() * torqeuPitchCoefficient * FMath::Clamp(pitchForce, -1.f, 1.f));
 	//StaticMeshComponent->AddTorqueInRadians(GetActorForwardVector() * -torqeuRollCoefficient * FMath::Clamp(rollForce, -1.f, 1.f));
 	//StaticMeshComponent->AddTorqueInRadians(FVector(0, 0, 1) * torqeuYawCoefficient * FMath::Clamp(yawForce, -1.f, 1.f));
-	
-
+	//
 	//FVector yawFv = FVector(0, 0, 1) * torqeuYawCoefficient * FMath::Clamp(posHMD.Y * FMath::Abs(posHMD.Y) * 0.005f, -1.f, 1.f);
 	//FVector pitchFv = GetActorRightVector() * torqeuPitchCoefficient * FMath::Clamp(posHMD.X * FMath::Abs(posHMD.X) *.003f, -1.f, 1.f);
 	//FVector rollFv = GetActorForwardVector() * -torqeuRollCoefficient * FMath::Clamp(posHMD.Y * FMath::Abs(posHMD.Y) * factorp, -1.f, 1.f);
@@ -226,9 +256,6 @@ void AHoverer::Tick(float DeltaTime)
 	//float lr = FVector::DotProduct(LeftMotionController->GetComponentLocation() - GetActorLocation(), Camera->GetRightVector());
 	//float lu = FVector::DotProduct(LeftMotionController->GetComponentLocation() - GetActorLocation(), Camera->GetUpVector());
 	//FVector lc = FVector(lf, lr, lu);
-
-
-
 	//FVector rmcPos;
 	//FRotator rmcRot;
 	//rmc->GetPositionOrientation(rmcPos, rmcRot);
@@ -246,69 +273,17 @@ void AHoverer::Tick(float DeltaTime)
 	//StaticMeshComponent->AddForce(-verticalSpeed*100);
 	//float ang = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(GetVelocity().GetSafeNormal(), GetActorUpVector())));
 	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("%f "), FMath::Abs(FMath::Cos(ang))));
-
-	FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
-	FVector verticalForceAdd = verticalSpeed * -150;
-	StaticMeshComponent->AddForce(verticalForceAdd);
+	//FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
+	//FVector verticalForceAdd = verticalSpeed * -150;
+	//StaticMeshComponent->AddForce(verticalForceAdd);
 	//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity() + GetActorLocation(), 120.f, FColor::Red, false, -1, 2, 5.f);
 	//DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), (verticalForceAdd) * .01 + GetActorLocation(), 120.f, FColor::Magenta, false, -1, 2, 5.f);
-
 	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Distance: %f"), GetVelocity().Size()));
 	//StaticMeshComponent->ComponentVelocity = VectorZero();// GetVelocity()*.01;
 	//linearVelocity *= 1.0f / (1.0f + GetWorld()->GetDeltaSeconds() * 1);
 	//FVector position = FVector(-GetVelocity().X, GetVelocity().Y, 160).Normalize()*400;
 	//SpringArm->SocketOffset = position;
 	//Camera->SetRelativeLocation(position);
-}
-
-void AHoverer::updateHoverImpulses(float offsetFB, float offsetLR, float offsetH, float localVertSpeed)
-{
-	//FlushPersistentDebugLines(GetWorld());
-	FCollisionQueryParams CollisionParams;
-	FHitResult OutHit;
-
-	FVector loc = GetActorLocation() + GetActorForwardVector() * offsetFB + GetActorRightVector() *  offsetLR + GetActorUpVector() * offsetH;
-	FVector direction = GetActorUpVector().RotateAngleAxis(FMath::Sign(offsetLR) * 15, GetActorForwardVector());
-
-	if (GetWorld()->LineTraceSingleByChannel(OutHit, loc - 5 * direction, -direction * 500 + loc, ECC_Visibility, CollisionParams))
-	{
-		if (OutHit.bBlockingHit)
-		{
-			float groundEffect = maxHoverImpulse - OutHit.Distance * OutHit.Distance * 6;
-			float currentImpulse = FMath::Clamp( groundEffect, 0.0f, maxHoverImpulse);
-			FVector impulse = GetActorUpVector() * currentImpulse;
-			StaticMeshComponent->AddImpulseAtLocation(impulse * GetWorld()->GetDeltaSeconds(), loc	);
-			DrawDebugDirectionalArrow(GetWorld(), loc, (impulse) * .002 + loc, 120.f, FColor::Yellow, false, -1, 2, 5.f);
-			//DrawDebugDirectionalArrow(GetWorld(), loc, (localVertSpeed) * .01 + lo, 120.f, FColor::Magenta, false, -1, 2, 5.f);
-			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.f	s, FColor::Red, FString::Printf(TEXT("Distance: %f"), currentImpulse));
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), OutHit.Distance   ));
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
-		}
-	}
-	DrawDebugDirectionalArrow(GetWorld(), loc, -direction * 500 + loc, 120.f, FColor::Green, false, -1, 2, 5.f);
-}
-
-void AHoverer::updateHoverThruster(UPhysicsThrusterComponent *thruster)
-{
-	////FlushPersistentDebugLines(GetWorld());
-	//FCollisionQueryParams CollisionParams;
-	//FHitResult OutHit;
-	//if (GetWorld()->LineTraceSingleByChannel(OutHit, thruster->GetComponentLocation(), thruster->GetForwardVector() * 500 + thruster->GetComponentLocation(), ECC_Visibility, CollisionParams))
-	//{
-	//	if (OutHit.bBlockingHit)
-	//	{
-	//		float currentForce = FMath::Clamp(maxHoverForce - OutHit.Distance *OutHit.Distance + OutHit.Distance, 0.0f, maxHoverForce);
-	//		thruster->ThrustStrength = currentForce;
-	//		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), currentForce));
-	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), OutHit.Distance   ));
-	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
-	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
-	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
-	//	}
-	//}
-	////DrawDebugDirectionalArrow(GetWorld(), thruster->GetComponentLocation(), thruster->GetForwardVector() * 500 + thruster->GetComponentLocation(), 120.f, FColor::Magenta, false, -1, 2, 5.f);
 }
 
 // Called to bind functionality to input
@@ -326,6 +301,7 @@ void AHoverer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AHoverer::moveX(float AxisValue)
 {
+	//changeto tick use currentThrottle to add froce
 	currentThrottle = 0;
 	if (AxisValue != 0)
 	{
@@ -428,91 +404,62 @@ FString AHoverer::getHMDType()
 	return FString("None");
 }
 
-//void AHoverer::ServerMoveX_Implementation(float AxisValue)
-//{
-//	StaticMeshComponent->AddTorqueInRadians(GetActorUpVector() * -torqeuCoefficient * AxisValue);
-//	//FMath::Clamp(value, maxForwardForce, maxForwardForce);
-//	//MainThrusterComponent->ThrustStrength = maxForwardForce * value;
-//}
-//bool AHoverer::ServerMoveX_Validate(float AxisValue)
-//{
-//	return true;
-//}
-//void AHoverer::ServerRoll_Implementation(float AxisValue)
-//{
-//	StaticMeshComponent->AddTorqueInRadians(GetActorForwardVector() * -torqeuPitchCoefficient * AxisValue);
-//	//AddActorLocalRotation(FRotator(0, 10, 0), true, 0, ETeleportType::None);
-//}
-//bool AHoverer::ServerRoll_Validate(float arg)
-//{
-//	return true;
-//}
-//void AHoverer::ServerPitch_Implementation(float AxisValue)
-//{
-//	StaticMeshComponent->AddTorqueInRadians(GetActorRightVector() * torqeuCoefficient * AxisValue);
-//	//AddActorLocalRotation(FRotator(0, 10, 0), true, 0, ETeleportType::None);
-//}
-//bool AHoverer::ServerPitch_Validate(float arg)
-//{
-//	return true;
-//}
-//void AHoverer::ServerYaw_Implementation(float value)
-//{
-//	StaticMeshComponent->AddTorqueInRadians(GetActorUpVector() * -torqeuCoefficient * value);
-//	//AddActorLocalRotation(FRotator(0, 10, 0), true, 0, ETeleportType::None);
-//}
-//bool AHoverer::ServerYaw_Validate(float arg)
-//{
-//	return true;
-//}
-//void AHowerer::ServerFire_Implementation()
-//{
-//	//if(GEngine)
-//	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("called on c exe s"));
-//	SpawnProjectile();
-//}
-//bool AHowerer::ServerFire_Validate()
-//{
-//	return true;
-//}
-//void AHowerer::OnFire()
-//{
-//	if (FireSound != NULL)
-//	{
-//		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-//	}
-//	ServerFire();
-//}
-//
-//void AHowerer::DoDamage(float damageValue)
-//{
-//	health -= damageValue;
-//	FString TheFloatStr = FString::SanitizeFloat(health);
-//	//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, *TheFloatStr);
-//}
-//
-//float AHowerer::getHealth()
-//{
-//	return health;
-//}
-//void AHowerer::SpawnProjectile()
-//{
-//
-//	FVector const MuzzleLocation = StaticMeshComponent->GetComponentLocation() + StaticMeshComponent->GetForwardVector() * MuzzleOffset;
-//	FRotator MuzzleRotation = StaticMeshComponent->GetComponentRotation();
-//	UWorld* const World = GetWorld();
-//	if (World)
-//	{
-//		FActorSpawnParameters SpawnParams;
-//		SpawnParams.Owner = this;
-//		SpawnParams.Instigator = Instigator;
-//		// Spawning projectile
-//		AProjectile* const Projectile = World->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-//		if (Projectile)
-//		{
-//			// fire direction
-//			FVector const LaunchDir = MuzzleRotation.Vector();
-//			Projectile->InitVelocity(LaunchDir);
-//		}
-//	}
-//}
+void AHoverer::Destroyed()
+{
+	Super::Destroyed();
+
+	delete groundEffectLF;
+	delete groundEffectRF;
+	delete groundEffectLB;
+	delete groundEffectRB;
+}
+
+void AHoverer::updateHoverImpulses(float offsetFB, float offsetLR, float offsetH, float localVertSpeed)
+{
+	//FlushPersistentDebugLines(GetWorld());
+	FCollisionQueryParams CollisionParams;
+	FHitResult OutHit;
+
+	FVector loc = GetActorLocation() + GetActorForwardVector() * offsetFB + GetActorRightVector() *  offsetLR + GetActorUpVector() * offsetH;
+	FVector direction = GetActorUpVector().RotateAngleAxis(FMath::Sign(offsetLR) * 15, GetActorForwardVector());
+
+	if (GetWorld()->LineTraceSingleByChannel(OutHit, loc - 5 * direction, -direction * 500 + loc, ECC_Visibility, CollisionParams))
+	{
+		if (OutHit.bBlockingHit)
+		{
+			float groundEffect = maxHoverForce - OutHit.Distance * OutHit.Distance * 6;
+			float currentImpulse = FMath::Clamp(groundEffect, 0.0f, maxHoverForce);
+			FVector impulse = GetActorUpVector() * currentImpulse;
+			StaticMeshComponent->AddImpulseAtLocation(impulse * GetWorld()->GetDeltaSeconds(), loc);
+			DrawDebugDirectionalArrow(GetWorld(), loc, (impulse) * .002 + loc, 120.f, FColor::Yellow, false, -1, 2, 5.f);
+			//DrawDebugDirectionalArrow(GetWorld(), loc, (localVertSpeed) * .01 + lo, 120.f, FColor::Magenta, false, -1, 2, 5.f);
+			//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.f	s, FColor::Red, FString::Printf(TEXT("Distance: %f"), currentImpulse));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), OutHit.Distance   ));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+		}
+	}
+	DrawDebugDirectionalArrow(GetWorld(), loc, -direction * 500 + loc, 120.f, FColor::Green, false, -1, 2, 5.f);
+}
+
+void AHoverer::updateHoverThruster(UPhysicsThrusterComponent *thruster)
+{
+	////FlushPersistentDebugLines(GetWorld());
+	//FCollisionQueryParams CollisionParams;
+	//FHitResult OutHit;
+	//if (GetWorld()->LineTraceSingleByChannel(OutHit, thruster->GetComponentLocation(), thruster->GetForwardVector() * 500 + thruster->GetComponentLocation(), ECC_Visibility, CollisionParams))
+	//{
+	//	if (OutHit.bBlockingHit)
+	//	{
+	//		float currentForce = FMath::Clamp(maxHoverForce - OutHit.Distance *OutHit.Distance + OutHit.Distance, 0.0f, maxHoverForce);
+	//		thruster->ThrustStrength = currentForce;
+	//		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), currentForce));
+	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Distance: %f"), OutHit.Distance   ));
+	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
+	//		//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+	//	}
+	//}
+	////DrawDebugDirectionalArrow(GetWorld(), thruster->GetComponentLocation(), thruster->GetForwardVector() * 500 + thruster->GetComponentLocation(), 120.f, FColor::Magenta, false, -1, 2, 5.f);
+}
