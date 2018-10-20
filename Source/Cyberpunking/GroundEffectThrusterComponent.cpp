@@ -37,8 +37,8 @@ void GroundEffectThrusterComponent::updateImpulse()
 		if (OutHit.bBlockingHit)
 		{
 			groundEffect = maxForce - OutHit.Distance * OutHit.Distance * 6;
-			float bumping = 150;
-			force = FMath::Clamp(groundEffect + vertV * bumping, 0.0f, maxForce);
+			float damping = 150;
+			force = FMath::Clamp(groundEffect + vertV * damping, 0.0f, maxForce);
 		}
 	}
 	force += vertV * 50;

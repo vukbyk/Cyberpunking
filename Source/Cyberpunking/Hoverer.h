@@ -86,12 +86,11 @@ public:
 	class UMotionControllerComponent *RightMotionController;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	float pitchForce;
+	float pitchThrottle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	float rollForce;
+	float rollThrottle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
-	float yawForce;
-
+	float yawThrottle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Gameplay)
 	FVector thrusterOffset;
 

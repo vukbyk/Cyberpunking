@@ -221,6 +221,10 @@ void AHoverer::Tick(float DeltaTime)
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity()*1 + GetActorLocation(), 120.f, FColor::Red, false, -1, 2, 5.f);
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity().ProjectOnTo(FVector(0,0,1)) * 2 + GetActorLocation(), 120.f, FColor::Blue, false, -1, 2, 5.f);
 
+	StaticMeshComponent->AddTorqueInRadians(GetActorRightVector() * torqeuPitchCoefficient * FMath::Clamp(pitchThrottle, -1.f, 1.f));
+	StaticMeshComponent->AddTorqueInRadians(GetActorForwardVector() * -torqeuRollCoefficient * FMath::Clamp(rollThrottle, -1.f, 1.f));
+	StaticMeshComponent->AddTorqueInRadians(FVector(0, 0, 1) * torqeuYawCoefficient * FMath::Clamp(yawThrottle, -1.f, 1.f));
+
 	//updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
 	//updateHoverImpulses(+offsetFB, -offsetLR, offsetH);
 	//updateHoverImpulses(-offsetFB, +offsetLR, offsetH);
