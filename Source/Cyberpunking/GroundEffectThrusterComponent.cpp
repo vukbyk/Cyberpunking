@@ -24,7 +24,7 @@ void GroundEffectThrusterComponent::updateImpulse()
 	float vertV = FVector::DotProduct((lastLocation - thruster->GetComponentLocation()), -thruster->GetForwardVector()) / thruster->GetWorld()->GetDeltaSeconds();
 	lastLocation = thruster->GetComponentLocation();
 
-	FVector rayDir = -thruster->GetForwardVector().RotateAngleAxis(FMath::Sign(thruster->RelativeLocation.Y) * 5, thruster->GetUpVector()); //+rotating on basic
+	FVector rayDir = -thruster->GetForwardVector().RotateAngleAxis(FMath::Sign(thruster->RelativeLocation.Y) /** 5*/, thruster->GetUpVector()); //+rotating on basic
 	FVector forceDir = -thruster->GetForwardVector();
 
 	float groundEffect = 0;
@@ -36,12 +36,12 @@ void GroundEffectThrusterComponent::updateImpulse()
 	{
 		if (OutHit.bBlockingHit)
 		{
-			groundEffect = maxForce - OutHit.Distance * OutHit.Distance * 6;
+			groundEffect = maxForce - OutHit.Distance * OutHit.Distance * 3;
 			float damping = 150;
 			force = FMath::Clamp(groundEffect + vertV * damping, 0.0f, maxForce);
 		}
 	}
-	force += vertV * 50;
+	force += vertV * 10;
 	force = FMath::Clamp(force, -maxForce, maxForce);
 	thruster->ThrustStrength = force;
 	DrawDebugDirectionalArrow(thruster->GetWorld(), thruster->GetComponentLocation(), forceDir * force * .001 + thruster->GetComponentLocation(), 120.f, FColor::Yellow, false, -1, 2, 5.f);

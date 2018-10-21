@@ -57,7 +57,7 @@ AHoverer::AHoverer()
 	StaticMeshComponent->SetSimulatePhysics(true);
 	StaticMeshComponent->SetEnableGravity(true);
 	StaticMeshComponent->SetMassOverrideInKg(NAME_None, mass, true);
-	StaticMeshComponent->SetLinearDamping(.25);
+	StaticMeshComponent->SetLinearDamping(.3);
 	StaticMeshComponent->SetAngularDamping(2);
 	StaticMeshComponent->BodyInstance.InertiaTensorScale = FVector( .75, 3, 1);
 	StaticMeshComponent->SetCenterOfMass(FVector(0, 0, -175));
@@ -121,7 +121,7 @@ AHoverer::AHoverer()
 	//MainThrusterComponent->bAutoActivate = 1;
 
 	thrusterOffset = FVector(150, 40, 0);
-	float angle = 5;
+	float angle = 0;// 5;
 
 	thrusterLF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLF"));
 	thrusterLF->SetRelativeLocation(thrusterOffset*FVector(1, -1, 1));
@@ -215,15 +215,15 @@ void AHoverer::Tick(float DeltaTime)
 	FVector lc = FVector(lf, lr, lu);
 
 	FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
-	//FVector verticalForceAdd = verticalSpeed * -25;
-	//StaticMeshComponent->AddForce(verticalForceAdd);
+	FVector verticalForceAdd = verticalSpeed * -25;
+	StaticMeshComponent->AddForce(verticalForceAdd);
 
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity()*1 + GetActorLocation(), 120.f, FColor::Red, false, -1, 2, 5.f);
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity().ProjectOnTo(FVector(0,0,1)) * 2 + GetActorLocation(), 120.f, FColor::Blue, false, -1, 2, 5.f);
 
 	StaticMeshComponent->AddTorqueInRadians(GetActorRightVector() * torqeuPitchCoefficient * FMath::Clamp(pitchThrottle, -1.f, 1.f));
 	StaticMeshComponent->AddTorqueInRadians(GetActorForwardVector() * -torqeuRollCoefficient * FMath::Clamp(rollThrottle, -1.f, 1.f));
-	StaticMeshComponent->AddTorqueInRadians(FVector(0, 0, 1) * torqeuYawCoefficient * FMath::Clamp(yawThrottle, -1.f, 1.f));
+	StaticMeshComponent->AddTorqueInRadians(GetActorUpVector()/*FVector(0, 0, 1)*/ * torqeuYawCoefficient * FMath::Clamp(yawThrottle, -1.f, 1.f));
 
 	//updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
 	//updateHoverImpulses(+offsetFB, -offsetLR, offsetH);

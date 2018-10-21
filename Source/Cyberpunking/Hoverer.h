@@ -45,7 +45,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxForwardForce = 150000;
+	float maxForwardForce = 200000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float maxHoverForce = 300000;
 
