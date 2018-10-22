@@ -57,8 +57,8 @@ AHoverer::AHoverer()
 	StaticMeshComponent->SetSimulatePhysics(true);
 	StaticMeshComponent->SetEnableGravity(true);
 	StaticMeshComponent->SetMassOverrideInKg(NAME_None, mass, true);
-	StaticMeshComponent->SetLinearDamping(.3);
-	StaticMeshComponent->SetAngularDamping(2);
+	StaticMeshComponent->SetLinearDamping(.2);
+	StaticMeshComponent->SetAngularDamping(3);
 	StaticMeshComponent->BodyInstance.InertiaTensorScale = FVector( .75, 3, 1);
 	StaticMeshComponent->SetCenterOfMass(FVector(0, 0, -175));
 	StaticMeshComponent->SetMoveIgnoreMask(EComponentMobility::Movable);
@@ -84,7 +84,8 @@ AHoverer::AHoverer()
 	//FVector headOffset = FVector(-10, 0, 180);
 
 	offsetHMD = CreateDefaultSubobject<USceneComponent>(TEXT("offsetHMD"));
-	offsetHMD->SetupAttachment(SpringArm, USpringArmComponent::SocketName);	// Attach SpringArm to RootComponent
+	offsetHMD->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	//offsetHMD->SetupAttachment(RootComponent);
 	//offsetHMD->SetRelativeLocation(FVector(-100, 0, 180));
 
 	// Create camera component 
@@ -121,7 +122,7 @@ AHoverer::AHoverer()
 	//MainThrusterComponent->bAutoActivate = 1;
 
 	thrusterOffset = FVector(150, 40, 0);
-	float angle = 0;// 5;
+	float angle = 5;
 
 	thrusterLF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLF"));
 	thrusterLF->SetRelativeLocation(thrusterOffset*FVector(1, -1, 1));
@@ -214,16 +215,58 @@ void AHoverer::Tick(float DeltaTime)
 	float lu = FVector::DotProduct(LeftMotionController->GetComponentLocation() - Camera->GetComponentLocation(), Camera->GetUpVector());
 	FVector lc = FVector(lf, lr, lu);
 
-	FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
-	FVector verticalForceAdd = verticalSpeed * -25;
-	StaticMeshComponent->AddForce(verticalForceAdd);
+
+
+
+	//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("%f"), FVector::DotProduct(GetVelocity(), GetActorRightVector()) ) );
+
+	//FVector verticalSpeed = GetVelocity().ProjectOnTo(GetActorUpVector()); // *GetWorld()->GetDeltaSeconds();
+	//FVector verticalForceAdd = verticalSpeed * - 70;
+	//StaticMeshComponent->AddForce(verticalForceAdd);
 
 	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity()*1 + GetActorLocation(), 120.f, FColor::Red, false, -1, 2, 5.f);
-	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity().ProjectOnTo(FVector(0,0,1)) * 2 + GetActorLocation(), 120.f, FColor::Blue, false, -1, 2, 5.f);
+	DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetVelocity().ProjectOnTo(FVector(0,0,1)) * .5 + GetActorLocation(), 120.f, FColor::Blue, false, -1, 2, 5.f);
 
 	StaticMeshComponent->AddTorqueInRadians(GetActorRightVector() * torqeuPitchCoefficient * FMath::Clamp(pitchThrottle, -1.f, 1.f));
 	StaticMeshComponent->AddTorqueInRadians(GetActorForwardVector() * -torqeuRollCoefficient * FMath::Clamp(rollThrottle, -1.f, 1.f));
 	StaticMeshComponent->AddTorqueInRadians(GetActorUpVector()/*FVector(0, 0, 1)*/ * torqeuYawCoefficient * FMath::Clamp(yawThrottle, -1.f, 1.f));
+
+	FVector toMakeNoseUp = FVector(GetActorRightVector().X, GetActorRightVector().Y, 0.f).GetSafeNormal();
+	
+
+	//ako se poklapa nagib sa smerom brzine upsori ga za koeficijent Z
+	float direction = FVector::DotProduct(GetVelocity(), GetActorRightVector());
+
+	if ((direction > 0 && GetActorRightVector().Z > 0)) //Left Turn
+	{
+		float rollCoof = -GetActorRightVector().Z;
+		FVector sideSpeed = GetVelocity().ProjectOnTo(GetActorRightVector());
+		FVector sideForceAdd = sideSpeed * sideDump * rollCoof;
+		StaticMeshComponent->AddForce(sideForceAdd);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), sideSpeed * 1.0f + GetActorLocation(), 120.f, FColor::Magenta, false, -1, 2, 5.f);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), sideForceAdd * .01f + GetActorLocation(), 120.f, FColor::Cyan, false, -1, 2, 5.f);
+
+		FVector toMakeNoseUp = FVector(GetActorRightVector().X, GetActorRightVector().Y, 0.f).GetSafeNormal();
+		if (toMakeNoseUp != FVector(0, 0, 0))
+		{
+			StaticMeshComponent->AddTorqueInRadians(toMakeNoseUp * torqeuPitchCoefficient * rollCoof * 2);
+		}
+	}
+	if ((direction < 0 && GetActorRightVector().Z < 0))
+	{
+		float rollCoof = GetActorRightVector().Z;
+		FVector sideSpeed = GetVelocity().ProjectOnTo(GetActorRightVector());
+		FVector sideForceAdd = sideSpeed * sideDump * rollCoof;
+		StaticMeshComponent->AddForce(sideForceAdd);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), sideSpeed * 1.0f + GetActorLocation(), 120.f, FColor::Magenta, false, -1, 2, 5.f);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), sideForceAdd * .01f + GetActorLocation(), 120.f, FColor::Cyan, false, -1, 2, 5.f);
+
+		FVector toMakeNoseUp = FVector(GetActorRightVector().X, GetActorRightVector().Y, 0.f).GetSafeNormal();
+		if (toMakeNoseUp != FVector(0, 0, 0))
+		{
+			StaticMeshComponent->AddTorqueInRadians(toMakeNoseUp * torqeuPitchCoefficient * rollCoof * 2);
+		}
+	}
 
 	//updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
 	//updateHoverImpulses(+offsetFB, -offsetLR, offsetH);

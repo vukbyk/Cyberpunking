@@ -24,13 +24,13 @@ class CYBERPUNKING_API AHoverer : public APawn
 	//UPROPERTY(Category = physx, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	//class UPhysicsThrusterComponent *MainThrusterComponent;
 
-	UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = physx, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UPhysicsThrusterComponent *thrusterLF;
-	UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = physx, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UPhysicsThrusterComponent *thrusterRF;
-	UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = physx, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UPhysicsThrusterComponent *thrusterLB;
-	UPROPERTY(Category = physx, EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Category = physx, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	class UPhysicsThrusterComponent *thrusterRB;
 	UFUNCTION()
 	void updateHoverThruster(UPhysicsThrusterComponent *thruster);
@@ -45,14 +45,14 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxForwardForce = 200000;
+	float maxForwardForce = 350000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxHoverForce = 300000;
+	float maxHoverForce = 350000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuYawCoefficient   = 20000000;
+	float torqeuYawCoefficient   = 35000000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuRollCoefficient  = 13000000;
+	float torqeuRollCoefficient  = 13300000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float torqeuPitchCoefficient = 20000000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
@@ -65,7 +65,9 @@ public:
 	FVector springArmOfset = FVector(-100.0f, 0.0f, 180.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float currentThrottle = 0;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float sideDump = 750;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/* Component to specify origin for the HMD */
