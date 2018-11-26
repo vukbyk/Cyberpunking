@@ -23,7 +23,8 @@ public:
 	FVector lastLocation;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxForce=300000;
+	float maxForce=0;
+	float reduceHoverF = 1.0f;
 
 	//UFUNCTION()
 	void updateImpulse();

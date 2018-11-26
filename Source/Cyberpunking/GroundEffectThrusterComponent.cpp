@@ -25,9 +25,9 @@ void GroundEffectThrusterComponent::updateImpulse()
 	lastLocation = thruster->GetComponentLocation();
 
 	float side = FMath::Sign(thruster->RelativeLocation.Y);
-	float addAngRay = 5;
+	float addAngRay = 6;
 	FVector rayDir = -thruster->GetForwardVector().RotateAngleAxis(side * addAngRay, thruster->GetUpVector()); //+rotating on basic
-	FVector startRay = thruster->GetComponentLocation() - 5.0 * rayDir + side * -10 * thruster->GetRightVector();
+	FVector startRay = thruster->GetComponentLocation() - 5.0 * rayDir + side * -5 * thruster->GetRightVector();
 	FVector endRay = -rayDir * 500 + thruster->GetComponentLocation();
 	float force = 0;
 
@@ -37,8 +37,8 @@ void GroundEffectThrusterComponent::updateImpulse()
 	{
 		if (OutHit.bBlockingHit && OutHit.Distance<=500)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("%f"), OutHit.Distance));
-			float groundEffect = maxForce - OutHit.Distance * OutHit.Distance * 12;
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("%f"), OutHit.Distance));
+			float groundEffect = maxForce - OutHit.Distance * OutHit.Distance * reduceHoverF;
 			float damping = 500;
 			force = FMath::Clamp(groundEffect + vertV * damping, 0.0f, maxForce);
 		}

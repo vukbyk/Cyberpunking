@@ -45,24 +45,35 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxForwardForce = 350000;
+	float maxForwardForce;// = 350000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float maxHoverForce = 350000;
+	float maxHoverForce; //= 250000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float reduceHoverF;// = 30;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuYawCoefficient   = 35000000;
+	float linearDamping;//=.5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuRollCoefficient  = 13300000;
+	float angularDamping;//=6;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float torqeuPitchCoefficient = 20000000;
+		FVector InertiaTensorScale;// = FVector(.75, 3, 1);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	FVector CenterOfMass;// = FVector(0, 0, -175);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float torqeuYawCoefficient;//  = 35000000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float torqeuRollCoefficient;//  = 13300000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float torqeuPitchCoefficient;//= 20000000;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float torqueY;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float mass = 200;
+	float mass;// = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	float health = 100;
+	float health;// = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	FVector springArmOfset = FVector(-100.0f, 0.0f, 180.0f);
+	FVector springArmOfset;// = FVector(-100.0f, 0.0f, 150.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float currentThrottle = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)

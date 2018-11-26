@@ -42,7 +42,7 @@ AHoverer::AHoverer()
 	struct FConstructorStatics
 	{
 		ConstructorHelpers::FObjectFinderOptional<UStaticMesh> Mesh;
-		FConstructorStatics() : Mesh(TEXT("/Game/Meshes/Hoverboard/Hoverboard.Hoverboard"))
+		FConstructorStatics() : Mesh(TEXT("/Game/Meshes/Hoverboard/Hoverboard2m.Hoverboard2m"))
 		{
 		}
 	};
@@ -56,16 +56,24 @@ AHoverer::AHoverer()
 	//Physics
 	StaticMeshComponent->SetSimulatePhysics(true);
 	StaticMeshComponent->SetEnableGravity(true);
-	StaticMeshComponent->SetMassOverrideInKg(NAME_None, mass, true);
-	StaticMeshComponent->SetLinearDamping(.2);
-	StaticMeshComponent->SetAngularDamping(3);
-	StaticMeshComponent->BodyInstance.InertiaTensorScale = FVector( .75, 3, 1);
-	StaticMeshComponent->SetCenterOfMass(FVector(0, 0, -175));
 	StaticMeshComponent->SetMoveIgnoreMask(EComponentMobility::Movable);
 
-	float pitch = -70;
-	float yaw = 90;
-	float roll = 90;
+	//float pitch = -70;
+	//float yaw = 90;
+	//float roll = 90;
+
+	linearDamping = .3;
+	angularDamping = 6;
+	InertiaTensorScale = FVector(.75, 3, 1);
+	CenterOfMass = FVector(0, 0, -175);
+
+	maxForwardForce = 350000;
+	maxHoverForce = 250000;
+	reduceHoverF = 20;
+
+	torqeuYawCoefficient   = 25000000;
+	torqeuRollCoefficient  = 9000000;
+	torqeuPitchCoefficient = 15000000;
 
 	// Create a spring arm component
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -77,6 +85,10 @@ AHoverer::AHoverer()
 	SpringArm->bInheritRoll = false;
 	SpringArm->bInheritPitch = false;
 
+	mass = 150;
+	health = 100;
+	springArmOfset = FVector(-100.0f, 0.0f, 150.0f);
+
 	//za normalnu kameru
 	//SpringArm->bEnableCameraLag = true;
 	//SpringArm->bEnableCameraRotationLag = true;
@@ -84,15 +96,15 @@ AHoverer::AHoverer()
 	//FVector headOffset = FVector(-10, 0, 180);
 
 	offsetHMD = CreateDefaultSubobject<USceneComponent>(TEXT("offsetHMD"));
-	offsetHMD->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	//offsetHMD->SetupAttachment(RootComponent);
-	//offsetHMD->SetRelativeLocation(FVector(-100, 0, 180));
+	//offsetHMD->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	offsetHMD->SetupAttachment(RootComponent);
+	offsetHMD->SetRelativeLocation(FVector(-50, 0, 180));
 
 	// Create camera component 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	// Attach the camera
 	//Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);	
-	Camera->SetupAttachment(offsetHMD);
+	Camera->SetupAttachment(offsetHMD);	
 	Camera->SetRelativeLocation(FVector(0, 0, 0));
 	//Camera->bUsePawnControlRotation = false; // Don't rotate camera with controller
 
@@ -121,7 +133,7 @@ AHoverer::AHoverer()
 	//MainThrusterComponent->ThrustStrength = 100000;
 	//MainThrusterComponent->bAutoActivate = 1;
 
-	thrusterOffset = FVector(150, 40, 0);
+	thrusterOffset = FVector(120, 25, 0);
 	float angle = 5;
 
 	thrusterLF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLF"));
@@ -133,7 +145,6 @@ AHoverer::AHoverer()
 	groundEffectLF = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectLF"));
 	groundEffectLF->thruster=thrusterLF;
 	groundEffectLF->lastLocation = thrusterLF->GetComponentLocation();
-	groundEffectLF->maxForce = maxHoverForce;
 
 	thrusterRF = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterRF"));
 	thrusterRF->SetRelativeLocation(thrusterOffset);
@@ -144,7 +155,6 @@ AHoverer::AHoverer()
 	groundEffectRF = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectRF"));
 	groundEffectRF->thruster = thrusterRF;
 	groundEffectRF->lastLocation = thrusterRF->GetComponentLocation();
-	groundEffectRF->maxForce = maxHoverForce;
 
 	thrusterLB = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterLB"));
 	thrusterLB->SetRelativeLocation(thrusterOffset*FVector(-1,-1, 1));
@@ -155,7 +165,7 @@ AHoverer::AHoverer()
 	groundEffectLB = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectLB"));
 	groundEffectLB->thruster = thrusterLB;
 	groundEffectLB->lastLocation = thrusterLB->GetComponentLocation();
-	groundEffectLB->maxForce = maxHoverForce;
+
 
 	thrusterRB = CreateDefaultSubobject<UPhysicsThrusterComponent>(TEXT("thrusterRB"));
 	thrusterRB->SetRelativeLocation(thrusterOffset*FVector (-1, 1, 1));
@@ -166,7 +176,7 @@ AHoverer::AHoverer()
 	groundEffectRB = new GroundEffectThrusterComponent();//CreateDefaultSubobject<UGroundEffectThrusterComponent>(TEXT("groundEffectRB"));	
 	groundEffectRB->thruster = thrusterRB;
 	groundEffectRB->lastLocation = thrusterRB->GetComponentLocation();
-	groundEffectRB->maxForce = maxHoverForce;
+
 
 	bReplicates = true;
 	bReplicateMovement = true;
@@ -181,6 +191,23 @@ AHoverer::AHoverer()
 void AHoverer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	StaticMeshComponent->SetMassOverrideInKg(NAME_None, mass, true);
+	StaticMeshComponent->SetLinearDamping(linearDamping);
+	StaticMeshComponent->SetAngularDamping(angularDamping);
+	StaticMeshComponent->BodyInstance.InertiaTensorScale = InertiaTensorScale;
+	StaticMeshComponent->SetCenterOfMass(CenterOfMass);
+
+	groundEffectLF->maxForce = maxHoverForce;
+	groundEffectLF->reduceHoverF = reduceHoverF;
+	groundEffectRF->maxForce = maxHoverForce;
+	groundEffectRF->reduceHoverF = reduceHoverF;
+	groundEffectLB->maxForce = maxHoverForce;
+	groundEffectLB->reduceHoverF = reduceHoverF;
+	groundEffectRB->maxForce = maxHoverForce;
+	groundEffectRB->reduceHoverF = reduceHoverF;
+
+
 	ResetHMDOrigin();
 }
 
@@ -188,11 +215,6 @@ void AHoverer::BeginPlay()
 void AHoverer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//Offset of thrusters&rayCasts
-	float offsetFB = 150;
-	float offsetLR = 40;
-	float offsetH = 0;
 	
 	groundEffectLF->updateImpulse();
 	groundEffectRF->updateImpulse();
@@ -268,6 +290,10 @@ void AHoverer::Tick(float DeltaTime)
 		}
 	}
 
+	////Offset of thrusters&rayCasts
+	//float offsetFB = 150;
+	//float offsetLR = 40;
+	//float offsetH = 0;
 	//updateHoverImpulses(+offsetFB, +offsetLR, offsetH);
 	//updateHoverImpulses(+offsetFB, -offsetLR, offsetH);
 	//updateHoverImpulses(-offsetFB, +offsetLR, offsetH);
